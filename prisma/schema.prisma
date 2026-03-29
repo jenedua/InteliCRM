@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Tenant {
+  id            String        @id @default(uuid())
+  name          String
+  createdAt     DateTime      @default(now())
+  users         User[]
+  leads         Lead[]
+  contacts      Contact[]
+  opportunities Opportunity[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  source    String?
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Contact {
+  id            String        @id @default(uuid())
+  name          String
+  email         String?
+  phone         String?
+  tenantId      String
+  tenant        Tenant        @relation(fields: [tenantId], references: [id])
+  createdAt     DateTime      @default(now())
+  opportunities Opportunity[]
+  interactions  Interaction[]
+}
+
+model Opportunity {
+  id        String   @id @default(uuid())
+  title     String
+  value     Float
+  stage     String   // "LEAD", "QUALIFIED", "PROPOSAL", "WON", "LOST"
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
+  createdAt DateTime @default(now())
+  order     Int      @default(0)
+}
+
+model Interaction {
+  id        String   @id @default(uuid())
+  type      String   // "EMAIL", "WHATSAPP", "NOTE", "CALL"
+  content   String
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id])
+  createdAt DateTime @default(now())
+}
